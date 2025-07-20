@@ -319,7 +319,6 @@
       user-select: none;
       user-drag: none;
     }
-    /* Контент внутри приложения */
     #appContent {
       width: 100%;
       max-height: 75%;
@@ -427,7 +426,6 @@
       </div>
 
       <div id="appWindow">
-        <!-- Контент приложений вставляется сюда -->
       </div>
 
       <div class="home-button" id="homeButton" title="Домой">⌂</div>
@@ -490,7 +488,6 @@
       setInterval(fakeBattery, 6000);
     }
 
-    // --- Разблокировка (мышь и тач) ---
     let isDragging = false;
     let startX = 0;
     let currentX = 0;
@@ -556,7 +553,6 @@
       showIcons();
     }
 
-    // --- Домашняя кнопка ---
     homeButton.addEventListener('click', () => {
       if (appWindow.style.display === 'flex') {
         closeApp();
@@ -564,12 +560,7 @@
         homescreen.style.display = 'none';
         lockscreen.style.display = 'block';
         resetSlider();
-        hideIcons();
-      }
-    });
-
-    // --- Открытие приложений ---
-    function openApp(appName) {
+      function openApp(appName) {
       homescreen.style.display = 'none';
       appWindow.style.display = 'flex';
       appWindow.innerHTML = '';
@@ -664,7 +655,6 @@
             alert('Сначала выберите фото из галереи');
             return;
           }
-          // Устанавливаем фон и сохраняем в localStorage
           setWallpaper(selectedPhotoSrc);
           alert('Фон установлен и сохранён!');
         };
@@ -701,26 +691,22 @@
       });
     }
 
-    // Функция установки и сохранения обоев
     function setWallpaper(url) {
       screen.style.backgroundImage = `url('${url}')`;
       localStorage.setItem('homescreenWallpaper', url);
     }
 
-    // При загрузке проверяем, есть ли сохранённые обои
     window.addEventListener('load', () => {
       const savedWallpaper = localStorage.getItem('homescreenWallpaper');
       if (savedWallpaper) {
         screen.style.backgroundImage = `url('${savedWallpaper}')`;
       }
     });
-
-    // Изначально показываем экран блокировки
+        
     lockscreen.style.display = 'block';
     homescreen.style.display = 'none';
     appWindow.style.display = 'none';
 
-    // Делаем доступным переключение с клавиатуры для иконок
     document.querySelectorAll('.icon').forEach(icon => {
       icon.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') {
