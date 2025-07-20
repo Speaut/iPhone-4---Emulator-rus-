@@ -1,0 +1,735 @@
+﻿<!DOCTYPE html> 
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>iPhone 4 — Эмулятор</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      margin: 0; padding: 0; background: #000;
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh; overflow: hidden; font-family: sans-serif;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .iphone {
+      width: 320px; height: 480px;
+      border: 16px solid #333;
+      border-radius: 40px;
+      background: #111;
+      box-shadow: 0 0 30px #000;
+      position: relative;
+      overflow: hidden;
+      touch-action: none; 
+    }
+    .screen {
+      width: 100%; height: 100%;
+      position: relative;
+      background: url('https://cdn.wallpapersafari.com/37/6/AVCvml.jpg') center/cover no-repeat;
+      transition: background 0.4s ease;
+    }
+    /* Статус-бар сверху */
+    .status-bar {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 20px;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      text-shadow: 0 0 2px black;
+      z-index: 60;
+      user-select: none;
+    }
+    .status-left {
+      flex: 1;
+    }
+    .status-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .wifi-icon {
+      width: 16px; height: 12px;
+      position: relative;
+      display: inline-block;
+    }
+    .wifi-icon span {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 2px; height: 2px;
+      background: white;
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+    .wifi-icon::before,
+    .wifi-icon::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      border: 2px solid white;
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+    .wifi-icon::before {
+      width: 12px;
+      height: 10px;
+      border-bottom: none;
+      border-right: none;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) rotate(-45deg);
+    }
+    .wifi-icon::after {
+      width: 8px;
+      height: 6px;
+      border-bottom: none;
+      border-right: none;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) rotate(-45deg);
+      border-color: white;
+      opacity: 0.7;
+    }
+    .battery {
+      width: 30px;
+      height: 12px;
+      border: 2px solid white;
+      border-radius: 3px;
+      position: relative;
+      box-sizing: content-box;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 600;
+      font-size: 10px;
+      color: white;
+      text-shadow: 0 0 2px black;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 4px;
+    }
+    .battery::after {
+      content: '';
+      position: absolute;
+      top: 3px; 
+      right: -5px;
+      width: 3px; 
+      height: 6px;
+      background: white;
+      border-radius: 1px;
+    }
+    .battery-level {
+      height: 100%;
+      background: #0f0;
+      border-radius: 1px 0 0 1px;
+      transition: width 0.3s ease;
+      position: absolute;
+      left: 0; top: 0;
+      z-index: 0;
+    }
+    .battery-text {
+      position: relative;
+      z-index: 1;
+      color: black;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 10px;
+      user-select: none;
+      pointer-events: none;
+    }
+    .charging {
+      position: absolute;
+      top: -18px;
+      right: 0;
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 18px solid #0f0;
+      clip-path: polygon(40% 0%, 60% 0%, 50% 100%);
+      animation: blink 1.5s infinite;
+      z-index: 10;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    #lockscreen, #homescreen {
+      position: absolute;
+      width: 100%; height: 100%;
+      top: 0; left: 0;
+      transition: all 0.5s ease-in-out;
+      user-select: none;
+    }
+    #homescreen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+      gap: 20px;
+      user-select: none;
+    }
+    .time {
+      text-align: center;
+      margin-top: 60px;
+      font-size: 36px;
+      color: white;
+      font-weight: bold;
+      text-shadow: 0 0 4px black;
+      user-select: none;
+    }
+    .slider-container {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 240px;
+      height: 30px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      border: 1px solid white;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+    .slider-handle {
+      width: 90px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      color: black;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      cursor: grab;
+      user-select: none;
+      transition: background 0.2s;
+      touch-action: none;
+    }
+    .slider-handle:active {
+      cursor: grabbing;
+    }
+    .home-button {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background: #222;
+      border: 2px solid #555;
+      border-radius: 50%;
+      box-shadow: inset 0 0 5px #000;
+      cursor: pointer;
+      z-index: 50;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      gap: 16px;
+    }
+    .icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      text-align: center;
+      font-size: 10px;
+      color: white;
+      padding-top: 5px;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.3s;
+      opacity: 0;
+      transform: scale(0.8);
+      user-select: none;
+    }
+    .icon:hover {
+      transform: scale(1.1);
+    }
+    .icon img {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 5px;
+      user-select: none;
+      pointer-events: none;
+    }
+    #appWindow {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: white;
+      z-index: 30;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadein 0.4s ease forwards;
+      transform-origin: center center;
+      padding: 10px;
+      box-sizing: border-box;
+      user-select: none;
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes fadeout {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.8); }
+    }
+    #appWindow.hiding {
+      animation: fadeout 0.4s ease forwards;
+    }
+    #appWindow h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+    #closeApp {
+      position: absolute;
+      top: 5px;
+      right: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      background: black;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 8px;
+      z-index: 40;
+      user-select: none;
+      user-drag: none;
+    }
+    /* Контент внутри приложения */
+    #appContent {
+      width: 100%;
+      max-height: 75%;
+      overflow-y: auto;
+      text-align: center;
+      user-select: text;
+    }
+    #appContent input[type=text] {
+      width: 80%;
+      padding: 6px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #appContent button {
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: none;
+      background-color: #007AFF;
+      color: white;
+      cursor: pointer;
+      margin-left: 5px;
+      user-select: none;
+    }
+    #appContent button:hover {
+      background-color: #005BBB;
+    }
+    #appContent iframe {
+      width: 90%;
+      height: 60%;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      border-radius: 8px;
+      user-select: none;
+      pointer-events: auto;
+    }
+    #appContent img {
+      width: 80px;
+      height: 80px;
+      margin: 5px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      user-select: none;
+    }
+    #appContent img:hover {
+      transform: scale(1.1);
+    }
+    #appContent img.fullscreen {
+      width: auto;
+      height: 70vh;
+      border-radius: 15px;
+      margin-top: 10px;
+      user-select: none;
+    }
+    #setWallpaperBtn {
+      margin-top: 10px;
+      background-color: #34C759;
+    }
+    #setWallpaperBtn:hover {
+      background-color: #2AA64A;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="iphone" id="iphone">
+    <div class="screen" id="screen">
+      <div class="status-bar">
+        <div class="status-left" id="statusTime">12:00</div>
+        <div class="status-right">
+          <div class="wifi-icon" title="Wi-Fi"></div>
+          <div class="battery" title="Батарея">
+            <div class="battery-level" id="batteryLevel"></div>
+            <div class="battery-text" id="batteryText">100%</div>
+            <div class="charging" id="chargingIndicator" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="lockscreen">
+        <div class="time" id="clock">12:00</div>
+        <div class="slider-container" id="sliderContainer">
+          <div class="slider-handle" id="slider">Сдвиньте →</div>
+        </div>
+      </div>
+
+      <div id="homescreen">
+        <div class="icon-grid">
+          <div class="icon" onclick="openApp('Safari')" tabindex="0" role="button" aria-label="Safari">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Safari_Icon.png/600px-Safari_Icon.png" alt="Safari">
+            Safari
+          </div>
+          <div class="icon" onclick="openApp('Настройки')" tabindex="0" role="button" aria-label="Настройки">
+            <img src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Настройки">
+            Настройки
+          </div>
+          <div class="icon" onclick="openApp('Фото')" tabindex="0" role="button" aria-label="Фото">
+            <img src="https://cdn-icons-png.flaticon.com/512/284/284474.png" alt="Фото">
+            Фото
+          </div>
+        </div>
+      </div>
+
+      <div id="appWindow">
+        <!-- Контент приложений вставляется сюда -->
+      </div>
+
+      <div class="home-button" id="homeButton" title="Домой">⌂</div>
+    </div>
+  </div>
+
+  <audio id="unlockSound" src="iphone click.mp3" preload="auto"></audio>
+
+  <script>
+    const lockscreen = document.getElementById('lockscreen');
+    const homescreen = document.getElementById('homescreen');
+    const appWindow = document.getElementById('appWindow');
+    const homeButton = document.getElementById('homeButton');
+    const slider = document.getElementById('slider');
+    const unlockSound = document.getElementById('unlockSound');
+    const screen = document.getElementById('screen');
+
+    const statusTime = document.getElementById('statusTime');
+    const clock = document.getElementById('clock');
+
+    const batteryLevel = document.getElementById('batteryLevel');
+    const batteryText = document.getElementById('batteryText');
+    const chargingIndicator = document.getElementById('chargingIndicator');
+
+    function updateClock() {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      clock.textContent = timeString;
+      statusTime.textContent = timeString;
+    }
+    updateClock();
+    setInterval(updateClock, 10000);
+
+    function updateBatteryStatus(battery) {
+      function updateAll() {
+        const level = battery.level;
+        const percent = Math.round(level * 100);
+        batteryLevel.style.width = `${percent}%`;
+        batteryText.textContent = `${percent}%`;
+        chargingIndicator.style.display = battery.charging ? 'block' : 'none';
+      }
+      updateAll();
+      battery.addEventListener('levelchange', updateAll);
+      battery.addEventListener('chargingchange', updateAll);
+    }
+
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(updateBatteryStatus);
+    } else {
+      function fakeBattery() {
+        const level = 0.6 + 0.4 * Math.sin(Date.now() / 50000);
+        const percent = Math.round(level * 100);
+        batteryLevel.style.width = `${percent}%`;
+        batteryText.textContent = `${percent}%`;
+        chargingIndicator.style.display = percent < 100 ? 'block' : 'none';
+      }
+      fakeBattery();
+      setInterval(fakeBattery, 6000);
+    }
+
+    // --- Разблокировка (мышь и тач) ---
+    let isDragging = false;
+    let startX = 0;
+    let currentX = 0;
+
+    function setSliderPosition(x) {
+      const sliderContainer = document.getElementById('sliderContainer');
+      const maxMove = sliderContainer.clientWidth - slider.clientWidth - 2; 
+      let posX = Math.min(Math.max(0, x - startX), maxMove);
+      slider.style.transform = `translateX(${posX}px)`;
+      currentX = posX;
+      if (posX >= maxMove) {
+        unlock();
+        resetSlider();
+      }
+    }
+
+    function resetSlider() {
+      slider.style.transition = 'transform 0.3s ease';
+      slider.style.transform = 'translateX(0px)';
+      setTimeout(() => {
+        slider.style.transition = '';
+      }, 300);
+      isDragging = false;
+    }
+
+    slider.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isDragging = true;
+      startX = e.clientX - currentX;
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      setSliderPosition(e.clientX);
+    });
+    document.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      if (currentX < (document.getElementById('sliderContainer').clientWidth - slider.clientWidth - 2)) {
+        resetSlider();
+      }
+    });
+
+    slider.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      startX = e.touches[0].clientX - currentX;
+    });
+    document.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      setSliderPosition(e.touches[0].clientX);
+    }, {passive: false});
+    document.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      if (currentX < (document.getElementById('sliderContainer').clientWidth - slider.clientWidth - 2)) {
+        resetSlider();
+      }
+    });
+
+    function unlock() {
+      unlockSound.play().catch(() => {});
+      lockscreen.style.display = 'none';
+      homescreen.style.display = 'flex';
+      showIcons();
+    }
+
+    // --- Домашняя кнопка ---
+    homeButton.addEventListener('click', () => {
+      if (appWindow.style.display === 'flex') {
+        closeApp();
+      } else if (homescreen.style.display === 'flex') {
+        homescreen.style.display = 'none';
+        lockscreen.style.display = 'block';
+        resetSlider();
+        hideIcons();
+      }
+    });
+
+    // --- Открытие приложений ---
+    function openApp(appName) {
+      homescreen.style.display = 'none';
+      appWindow.style.display = 'flex';
+      appWindow.innerHTML = '';
+
+      let content = '';
+      switch(appName) {
+        case 'Safari':
+          content = `
+            <h1>Safari</h1>
+            <input type="text" id="urlInput" placeholder="Введите URL" value="https://ya.ru" />
+            <button id="goBtn">Перейти</button>
+            <iframe src="https://ya.ru" id="browserFrame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+            <div style="margin-top: 10px;">
+              <button id="backBtn" title="Назад">←</button>
+              <button id="forwardBtn" title="Вперёд">→</button>
+            </div>
+          `;
+          break;
+        case 'Настройки':
+          content = `
+            <h1>Настройки</h1>
+            <p>Здесь будут настройки телефона.</p>
+            <p>Версия эмулятора: 1.0</p>
+          `;
+          break;
+        case 'Фото':
+          content = `
+            <h1>Фото</h1>
+            <div id="photoGallery" style="display:flex;flex-wrap: wrap; justify-content:center; gap:10px;">
+              <img src="https://picsum.photos/id/1015/80/80" alt="Фото 1" tabindex="0" />
+              <img src="https://picsum.photos/id/1016/80/80" alt="Фото 2" tabindex="0" />
+              <img src="https://picsum.photos/id/1021/80/80" alt="Фото 3" tabindex="0" />
+              <img src="https://picsum.photos/id/1025/80/80" alt="Фото 4" tabindex="0" />
+              <img src="https://picsum.photos/id/1035/80/80" alt="Фото 5" tabindex="0" />
+            </div>
+            <div id="fullPhotoContainer" style="margin-top:15px; text-align:center;"></div>
+            <button id="setWallpaperBtn">Сделать фоном рабочего стола</button>
+          `;
+          break;
+      }
+
+      appWindow.innerHTML = `
+        <div id="closeApp" title="Закрыть приложение">×</div>
+        <div id="appContent">${content}</div>
+      `;
+
+      document.getElementById('closeApp').onclick = closeApp;
+
+      if(appName === 'Safari') {
+        const urlInput = document.getElementById('urlInput');
+        const goBtn = document.getElementById('goBtn');
+        const browserFrame = document.getElementById('browserFrame');
+        const backBtn = document.getElementById('backBtn');
+        const forwardBtn = document.getElementById('forwardBtn');
+
+        goBtn.onclick = () => {
+          let url = urlInput.value.trim();
+          if(!url.match(/^https?:\/\//)) {
+            url = 'https://' + url;
+          }
+          browserFrame.src = url;
+        };
+        backBtn.onclick = () => {
+          browserFrame.contentWindow.history.back();
+        };
+        forwardBtn.onclick = () => {
+          browserFrame.contentWindow.history.forward();
+        };
+      }
+
+      if(appName === 'Фото') {
+        const gallery = document.getElementById('photoGallery');
+        const fullContainer = document.getElementById('fullPhotoContainer');
+        const setWallpaperBtn = document.getElementById('setWallpaperBtn');
+        let selectedPhotoSrc = null;
+
+        gallery.querySelectorAll('img').forEach(img => {
+          img.onclick = () => {
+            selectedPhotoSrc = img.src.replace('/80/80', '/600/400');
+            fullContainer.innerHTML = `<img src="${selectedPhotoSrc}" alt="Большое фото" class="fullscreen" />`;
+          };
+          img.onkeydown = e => {
+            if(e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              img.click();
+            }
+          };
+        });
+
+        setWallpaperBtn.onclick = () => {
+          if (!selectedPhotoSrc) {
+            alert('Сначала выберите фото из галереи');
+            return;
+          }
+          // Устанавливаем фон и сохраняем в localStorage
+          setWallpaper(selectedPhotoSrc);
+          alert('Фон установлен и сохранён!');
+        };
+      }
+    }
+
+    function closeApp() {
+      if(appWindow.style.display === 'flex') {
+        appWindow.classList.add('hiding');
+        setTimeout(() => {
+          appWindow.style.display = 'none';
+          appWindow.classList.remove('hiding');
+          appWindow.innerHTML = '';
+          homescreen.style.display = 'flex';
+          showIcons();
+        }, 350);
+      }
+    }
+
+    function showIcons() {
+      const icons = homescreen.querySelectorAll('.icon');
+      icons.forEach((icon, i) => {
+        setTimeout(() => {
+          icon.style.opacity = '1';
+          icon.style.transform = 'scale(1)';
+        }, 100 * i);
+      });
+    }
+    function hideIcons() {
+      const icons = homescreen.querySelectorAll('.icon');
+      icons.forEach(icon => {
+        icon.style.opacity = '0';
+        icon.style.transform = 'scale(0.8)';
+      });
+    }
+
+    // Функция установки и сохранения обоев
+    function setWallpaper(url) {
+      screen.style.backgroundImage = `url('${url}')`;
+      localStorage.setItem('homescreenWallpaper', url);
+    }
+
+    // При загрузке проверяем, есть ли сохранённые обои
+    window.addEventListener('load', () => {
+      const savedWallpaper = localStorage.getItem('homescreenWallpaper');
+      if (savedWallpaper) {
+        screen.style.backgroundImage = `url('${savedWallpaper}')`;
+      }
+    });
+
+    // Изначально показываем экран блокировки
+    lockscreen.style.display = 'block';
+    homescreen.style.display = 'none';
+    appWindow.style.display = 'none';
+
+    // Делаем доступным переключение с клавиатуры для иконок
+    document.querySelectorAll('.icon').forEach(icon => {
+      icon.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          icon.click();
+
+        }
+      });
+    });
+  </script>
+</body>
+</html>
